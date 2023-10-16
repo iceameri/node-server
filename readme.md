@@ -4,11 +4,12 @@ npm start
 npm install nodemon --save-dev
 $ npm run server 명령어로 실행
 
-[해당 링크](https://velog.io/@jwoo5264/NestJS-%EA%B0%84%EB%8B%A8%ED%95%9C-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EB%A7%8C%EB%93%A4%EA%B8%B0)
+[상세 링크](https://velog.io/@jwoo5264/NestJS-%EA%B0%84%EB%8B%A8%ED%95%9C-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EB%A7%8C%EB%93%A4%EA%B8%B0)
 
-최근 nestjs에 관심이 생겨 일단 crud 기본 포맷만 만들어보자는 생각에 프로젝트를 시작해보았다.
+> 최근 nestjs에 관심이 생겨 일단 crud 기본 포맷만 만들어보자는 생각에 프로젝트를 시작해보았다.
 제목은 간단하지만 typeorm 버전이 3으로 업데이트 되면서 @entityrepository가 deprecated됨에 따라 엄청난 난관이였다.
 
+```node
 //typeorm.config.ts
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { User } from '../entity/user.entity';
@@ -38,11 +39,13 @@ import { postgresConfig } from './config/typeorm.config';
   providers: [AppService],
 })
 export class AppModule {}
-많은 레퍼런스들을 찾았지만 config파일을 이용하여 데이터베이스를 관리하는 것이 가장 효율적이다. 하지만 .env로 분리하지는 않았다.
-entities 에 앞에 있는 경로를 읽지 못하여 User를 직접 주입한다.
-@Entityrepository -> @CustomRepository 으로의 변환
-service에서 Repository를 바로 사용하는 느낌의 참고 자료들도 있었으나 모두 실패로 돌아갔다. 많은 코드들을 참여하다보니 나중에 되돌아갈 방법조차 잊었을때 마음이 꺽였지만 마지막으로 해보자는 마음으로 시작하여 데이터베이스에 저장에 성공할 수 있게 되었다.
+```
+- 많은 레퍼런스들을 찾았지만 config파일을 이용하여 데이터베이스를 관리하는 것이 가장 효율적이다. 하지만 .env로 분리하지는 않았다.
+- entities 에 앞에 있는 경로를 읽지 못하여 User를 직접 주입한다.
+### @Entityrepository -> @CustomRepository 으로의 변환
+> service에서 Repository를 바로 사용하는 느낌의 참고 자료들도 있었으나 모두 실패로 돌아갔다. 많은 코드들을 참여하다보니 나중에 되돌아갈 방법조차 잊었을때 마음이 꺽였지만 마지막으로 해보자는 마음으로 시작하여 데이터베이스에 저장에 성공할 수 있게 되었다.
 
+```node
 //typeorm-ex.decorator.ts
 import { SetMetadata } from '@nestjs/common';
 
@@ -52,7 +55,6 @@ export const TYPEORM_EX_CUSTOM_REPOSITORY = 'TYPEORM_EX_CUSTOM_REPOSITORY';
 export function CustomRepository(entity: Function): ClassDecorator {
   return SetMetadata(TYPEORM_EX_CUSTOM_REPOSITORY, entity);
 }
-
 
 //typeorm-ex.module.ts
 import { DynamicModule, Provider } from '@nestjs/common';
@@ -104,9 +106,11 @@ import { Repository } from 'typeorm';
 
 @CustomRepository(User)
 export class UserRepository extends Repository<User> {}
-@Entityrepository를 사용할 수 없게 됨에 따라 해당 코드를 그대로 가져와 커스텀한 느낌을 받았다.
-TypeOrmModule을 extends 하여 기존에 사용하고있는 *.repository.ts 들을 그대로 사용하여 수정을 최소화한다.
-PostgreSQL dockerize
+```
+- @Entityrepository를 사용할 수 없게 됨에 따라 해당 코드를 그대로 가져와 커스텀한 느낌을 받았다.
+- ypeOrmModule을 extends 하여 기존에 사용하고있는 *.repository.ts 들을 그대로 사용하여 수정을 최소화한다.
+### PostgreSQL dockerize
+```
 version: '3.8'
 services:
   mongodb:
@@ -135,5 +139,6 @@ services:
     # 볼륨 설정
     volumes:
       - ./data/db/postgres/:/var/lib/db/postgresql
-$ docker compose up -d
+```
+`$ docker compose up -d`
 컨테이너를 실행하여 데이터베이스를 띄운다.
